@@ -5,7 +5,6 @@ namespace Classes;
 
 use Interfaces\WarehouseInterface;
 use Interfaces\ProductInterface;
-use Classes\Storage;
 use Interfaces\StorageInterface;
 
 class Warehouse implements WarehouseInterface

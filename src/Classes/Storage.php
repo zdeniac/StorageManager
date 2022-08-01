@@ -31,10 +31,10 @@ class Storage implements StorageInterface
             return $this->searchForWarehouseWithSpace($product, $quantity);
         }
 
-        // The number of products added
+        // We add the product and get back the quantity
         $added = $this->addProduct($product, $warehouse, $quantity, $currentCapacity);
 
-        // If there are any remaining items, we add them to the other warehouses
+        // If there are any remaining items, we add them to the next warehouses
         if ($quantity > $added)
         {
             $remainder = $quantity - $added;
@@ -55,7 +55,7 @@ class Storage implements StorageInterface
         $added = (int) ($currentCapacity >= $quantity) ? $quantity : $currentCapacity;
         $productInStorage = $this->getProductByWarehouse($product, $warehouse);
 
-        // If the product is not stored
+        // If the product is not stored in the warehouse
         // We add it to it, otherwise we update its quantity
         if (is_null($productInStorage))
         {
@@ -79,8 +79,7 @@ class Storage implements StorageInterface
 
     private function searchForWarehouseWithSpace(ProductInterface $product, int $quantity)
     {
-        foreach ($this->warehouses as $value)
-        {
+        foreach ($this->warehouses as $value) {
             if ($value['warehouse']->currentCapacity > 0) {
                 return $this->add($product, $value['warehouse'], $quantity);
             }

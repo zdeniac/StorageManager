@@ -2,32 +2,40 @@
 
 require('vendor/autoload.php');
 
+use Classes\Brand;
 use Classes\Warehouse;
 use Classes\Product;
 use Classes\Storage;
 
 try {
     $storage = new Storage();
-    // MÁRKA HIÁNYZIK
+
+    $nike = new Brand('Nike', 1);
+    $vans = new Brand('Vans', 2);
+
     $product = new Product(
         itemNumber: '2121', 
         name:'Vans cipő', 
         price: 200.30,
-        id: 1
+        id: 1,
+        brand: $nike
     );
     
     $product2 = new Product(
         itemNumber: '3303', 
         name:'Autó', 
         price: 1000,
-        id: 3
+        id: 3,
+        brand: $nike,
+        attributes: ['productionDate' => date('Y-m-d H:i:s')]
     );
     
     $product3 = new Product(
         itemNumber: '54353', 
         name:'Ház', 
         price: 9999,
-        id: 15
+        id: 15,
+        brand: $vans
     );
     
     $warehouse = new Warehouse(
@@ -43,7 +51,8 @@ try {
         address: 'Budapest', 
         capacity: 20,
         id: 300,
-        storage: $storage
+        storage: $storage,
+        attributes: ['country' => 'Hungary']
     );
 
     $warehouse3 = new Warehouse(
@@ -55,8 +64,7 @@ try {
     );
     
     
-    $warehouse->add(product: $product, quantity: 100);
-    dump($warehouse3);
+    $warehouse->add(product: $product, quantity: 65);
 }
 catch (\Exception $e) {
     echo $e->getMessage();
