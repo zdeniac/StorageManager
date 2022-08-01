@@ -56,6 +56,7 @@ try {
     
     
     $warehouse->add(product: $product, quantity: 100);
+    dump($warehouse3);
 }
 catch (\Exception $e) {
     echo $e->getMessage();

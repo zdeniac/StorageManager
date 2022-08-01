@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Classes;
 
 use Exceptions\StorageIsFullException;
+use Exceptions\StorageAlreadyExistsException;
 use Interfaces\ProductInterface;
 use Interfaces\StorageInterface;
 use Interfaces\WarehouseInterface;
@@ -11,7 +12,6 @@ use Interfaces\WarehouseInterface;
 class Storage implements StorageInterface
 {
     private array $warehouses = [];
-    private array $fullWarehouses = [];
 
     public function add(
         ProductInterface $product,
@@ -19,49 +19,30 @@ class Storage implements StorageInterface
         int $quantity
     ): bool
     {
-        
-        if (count($this->warehouses) == count($this->fullWarehouses)) {
-            throw new StorageIsFullException('The storage is full! ' . $quantity . ' items could not been placed.');
-        }
         /**
          * @var int $currentCapacity
         */
         $currentCapacity = $warehouse->currentCapacity;
 
-        // The warehouse is full
-        if ($currentCapacity < 1)
-        {
-            // We iterate through the warehouses until we find one
-            // where we can put the product
-            return $this->searchForWarehouseWithSpace($warehouse, $product, $quantity);
+        // The given warehouse is full
+        if ($currentCapacity < 1) {
+            // We iterate over the warehouses until we find one
+            // where we can put a product
+            return $this->searchForWarehouseWithSpace($product, $quantity);
         }
 
+        // The number of products added
         $added = $this->addProduct($product, $warehouse, $quantity, $currentCapacity);
 
-        // We add the remaining items to the remaining warehouses
+        // If there are any remaining items, we add them to the other warehouses
         if ($quantity > $added)
         {
             $remainder = $quantity - $added;
-            return $this->searchForWarehouseWithSpace($warehouse, $product, $remainder);
+            return $this->searchForWarehouseWithSpace($product, $remainder);
         }
 
         return true;
     }
-
-    private function searchForWarehouseWithSpace(
-        WarehouseInterface $warehouse,
-        ProductInterface $product,
-        int $quantity
-    )
-    {
-        foreach ($this->warehouses as $value)
-        {
-            if ($value['warehouse']->id != $warehouse->id) {
-                return $this->add($product, $value['warehouse'], $quantity);
-            }
-        }
-    }
-
 
     // returns the number of items added
     private function addProduct(
@@ -95,6 +76,19 @@ class Storage implements StorageInterface
 
         return $added;
     }
+
+    private function searchForWarehouseWithSpace(ProductInterface $product, int $quantity)
+    {
+        foreach ($this->warehouses as $value)
+        {
+            if ($value['warehouse']->currentCapacity > 0) {
+                return $this->add($product, $value['warehouse'], $quantity);
+            }
+        }
+        // If the loop is finished it means that all of the warehouses are full
+        throw new StorageIsFullException('The storage is full! ' . $quantity . ' items could not been placed.');
+    }
+
 
 
     public function remove()
@@ -138,10 +132,9 @@ class Storage implements StorageInterface
     public function create(WarehouseInterface $warehouse): void
     {
         $warehouses = $this->warehouses;
-        // if (array_key_exists($warehouse->id, $warehouses))
-        // {
-        //     throw DuplicateStorageKeyException('');
-        // }
+        if (array_key_exists($warehouse->id, $warehouses)) {
+            throw new StorageAlreadyExistsException('Storage for warehouse #' . $warehouse->id . ' already exists.');
+        }
         // megnézzük, van-e kulcs duplikáció, ha van, exception
         $warehouses[$warehouse->id] = [
             'warehouse' => $warehouse,

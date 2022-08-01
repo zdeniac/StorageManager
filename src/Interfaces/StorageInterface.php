@@ -17,4 +17,8 @@ interface StorageInterface
     // ): bool;
     public function create(WarehouseInterface $warehouse): void;
     public function getStorageByWarehouse(WarehouseInterface $warehouse): array;
+    public function getProductByWarehouse(
+        ProductInterface $product,
+        WarehouseInterface $warehouse
+    ): ProductInterface|null;
 }
