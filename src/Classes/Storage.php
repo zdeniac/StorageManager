@@ -19,6 +19,8 @@ class Storage implements StorageInterface
         int $quantity
     ): bool
     {
+        // Check if the storage has a warehouse or not
+        // if not, we link them together with create?
         /**
          * @var int $currentCapacity
         */
