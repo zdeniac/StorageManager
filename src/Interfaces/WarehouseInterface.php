@@ -9,5 +9,5 @@ interface WarehouseInterface
     public function setCurrentCapacity(int $amount): void;
     public function isEmpty(): bool;
     public function isFull(): bool;
-    // public function remove(): int;
+    public function remove(ProductInterface $product, int $quantity): bool;
 }

@@ -34,6 +34,11 @@ class Warehouse implements WarehouseInterface
         return $this->storage->add($product, $this, $quantity);
     }
 
+    public function remove(ProductInterface $product, int $quantity): bool
+    {
+        return $this->storage->remove($product, $this, $quantity);
+    }
+
     // returns the whole storage of the warehouse
     public function getStorage(): array
     {

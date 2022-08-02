@@ -103,13 +103,8 @@ class Storage implements StorageInterface
         ProductInterface $product,
         WarehouseInterface $warehouse,
         int $quantity
-    ): int|null
+    ): bool
     {
-        // If the warehouse is empty we iterate until we get one where the product is stored
-        if ($warehouse->isEmpty() ) {
-            return $this->searchForItemInWarehouses($product, $warehouse, $quantity);
-        }
-
         // We check if the product is in the warehouse
         $productInStorage = $this->getProductByWarehouse($product, $warehouse);
 
@@ -119,7 +114,17 @@ class Storage implements StorageInterface
         }
 
         // Otherwise we remove the product from the warehouse
-        return $this->removeProduct($productInStorage, $warehouse, $quantity);
+        $removed = $this->removeProduct($productInStorage, $warehouse, $quantity);
+
+        // If there are any remainder we iterate over the other warehouses
+        if ($quantity > $removed)
+        {
+            $remainder = $quantity - $removed;
+
+            return $this->searchForItemInWarehouses($product, $warehouse, $remainder);
+        }
+
+        return true;
     }
 
     // Iterates over the warehouses until it finds a warehouse where the product is stored
@@ -128,7 +133,7 @@ class Storage implements StorageInterface
         ProductInterface $product,
         WarehouseInterface $warehouse,
         int $quantity
-    ): int
+    ): bool
     {
         foreach ($this->warehouses as $value) {
             if ($this->getProductByWarehouse($product, $value['warehouse'])) {
@@ -147,29 +152,25 @@ class Storage implements StorageInterface
     ): int|null
     {
         $storedProductQty = $product->quantity;
-        $removed = (int) ($storedProductQty <= $quantity) ? $quantity : $storedProductQty;
+        $removed = (int) ($storedProductQty >= $quantity) ? $quantity : $storedProductQty;
 
         $newCurrentCapacity = ($storedProductQty >= $quantity) ? 
-                    $warehouse->currentCapacity - $quantity : $warehouse->currentCapacity - $storedProductQty;
+            $warehouse->currentCapacity - $quantity : $storedProductQty - $warehouse->currentCapacity;
 
         $warehouse->setCurrentCapacity($newCurrentCapacity);
 
         // If the warehouse has enough products to remove
         // We remove it
-        if ($removed >= $quantity) {
-            return $this->removeProductFromWarehouse($product, $warehouse);
+        if ($removed >= $storedProductQty) {
+            $this->removeProductFromWarehouse($product, $warehouse);
         }
 
         // Or we change its quantity
-        if ($removed < $quantity) {
-            return $this->removeProductFromWarehouse($product, $warehouse, $quantity);
+        if ($removed < $storedProductQty) {
+            $this->removeProductFromWarehouse($product, $warehouse, $storedProductQty - $removed);
         }
 
-
-        // If there are any remainder we iterate over the other warehouses
-        $remainder = $removed - $quantity;
-
-        return $this->searchForItemInWarehouses($product, $warehouse, $quantity);
+        return $removed;
     }
 
     public function removeProductFromWarehouse(
@@ -178,19 +179,17 @@ class Storage implements StorageInterface
         ?int $quantity = null
     ): int|null
     {
-        $products = $this->warehouses[$warehouse->id]['products'];
-
         foreach ($this->warehouses[$warehouse->id]['products'] as $key => $item)
         {
             if ($product->id == $item->id)
             {
                 // We quantity is give, we remove the amount
                 if (! is_null($quantity)) {
-                    $product->quantity = $quantity;
+                    $item->quantity = $quantity;
                 }
                 // Else we remove the product completley
                 else {
-                    unset($products[$key]);
+                    unset($this->warehouses[$warehouse->id]['products'][$key]);
                 }
 
                 return $quantity ?? null;

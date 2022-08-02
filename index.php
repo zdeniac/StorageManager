@@ -64,7 +64,11 @@ try {
     );
     
     
-    $warehouse->add(product: $product, quantity: 65);
+    $warehouse->add(product: $product, quantity: 60);
+    $warehouse->remove(product: $product, quantity: 30);
+
+    dump($storage);
+
 }
 catch (\Exception $e) {
     echo $e->getMessage();
