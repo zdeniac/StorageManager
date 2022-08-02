@@ -13,14 +13,19 @@ class Storage implements StorageInterface
 {
     private array $warehouses = [];
 
+    // protected static array $warehouses = [];
+	
+	// public function __construct($child) {
+	// 	array_push(self::$warehouses, $child);
+	// }
+    
+    // WAREHOUSE
     public function add(
         ProductInterface $product,
         WarehouseInterface $warehouse,
         int $quantity
     ): bool
     {
-        // Check if the storage has a warehouse or not
-        // if not, we link them together with create?
         /**
          * @var int $currentCapacity
         */
@@ -45,7 +50,7 @@ class Storage implements StorageInterface
 
         return true;
     }
-
+    // Warehouse-ba!
     // returns the number of items added
     private function addProduct(
         ProductInterface $product,
@@ -79,6 +84,7 @@ class Storage implements StorageInterface
         return $added;
     }
 
+    // Warehouse-ba!
     private function searchForWarehouseWithSpace(ProductInterface $product, int $quantity)
     {
         foreach ($this->warehouses as $value) {
@@ -91,12 +97,91 @@ class Storage implements StorageInterface
     }
 
 
-
-    public function remove()
+    // Warehouse-ba!
+    public function remove(
+        ProductInterface $product,
+        WarehouseInterface $warehouse,
+        int $quantity
+    )
     {
-        //
+        // Product és a quantity kell
+
+        // Üres raktár rekurzív újrahívás
+            // Ha minden raktár üres Exception
+        // $currentCapacity = $warehouse->currentCapacity;
+        // $capacity = $warehouse->capacity
+
+        // Ha üres a raktár megyünk a következő raktárra, ami nem üres
+        // if ($warehouse->isEmpty() ) {
+        //     return $this->searchForItemInWarehouses($product);
+        // }
+
+        // Megnézzük, hogy a nem üres raktárban szerepel-e a termék
+        //$productInStorage = $this->getProductByWarehouse($product, $warehouse);
+
+        // Ha nem, újrahívjuk a függvényt egy másik raktárral
+        // if (is_null($product)) {
+        //  return $this->searchForItemInWarehouses($product);
+        // }
+        // Szerepel annyi termék a raktárban? boolean|raktár
+
+        // Ha szerepel, kivesszük a raktárból
+        // if ($productInStorage->quantity >= $quantity) {
+        //     $this->removeProduct($product, $quantity);
+        // }
+
+            // Ha nem rekuzív újrahívás
+                // Ha egyik raktárban sem szerepel a termék, Exception
+            // Ha igen, kiveszem a tételt
+
+        // Van maradék?
+            // Ha nincs, visszatérés bool
+            // Ha van, rekurzív újrahívás
     }
 
+    // private function searchForItemInWarehouses(ProductInterface $product)
+    // {
+    //     foreach ($this->warehouses as $value) {
+    //         if ($this->getProductByWarehouse($product, $value['warehouse'])) {
+    //             return $this->remove($product, $value['warehouse']);
+    //         }
+    //     }
+    //     // If the loop is finished it means the product is not in storage
+    //     throw new ProductNotFoundException('The product ' . $product->name . ' is not found in the storage.');
+    // }
+
+
+    private function removeProduct()
+    {
+        // $added = (int) ($currentCapacity >= $quantity) ? $quantity : $currentCapacity;
+        // $productInStorage = $this->getProductByWarehouse($product, $warehouse);
+
+        // // If the product is not stored in the warehouse
+        // // We add it to it, otherwise we update its quantity
+        // if (is_null($productInStorage))
+        // {
+        //     // We create a new attribute to the Product object
+        //     // So we can check its quantity easier
+        //     $product = clone $product;
+        //     $product->quantity = $added;
+
+        //     $this->warehouses[$warehouse->id]['products'][] = $product;
+        // }
+        // else
+        // {
+        //     $productInStorage->quantity = $productInStorage->quantity + $added;
+        // }
+
+        // $newCurrentCapacity = $currentCapacity - $added;
+        // $warehouse->setCurrentCapacity($newCurrentCapacity);
+
+        // return $added;
+    }
+
+    
+    
+    
+    
     //public function addProductToWarehouse()
 
     // public function getAll(): array
@@ -112,16 +197,10 @@ class Storage implements StorageInterface
     {
         $warehouses = $this->warehouses;
 
-        foreach ($warehouses[$warehouse->id] as $key => $value)
+        foreach ($warehouses[$warehouse->id]['products'] as $key => $prod)
         {
-            if ($key == 'products')
-            {
-                foreach ($value as $prod)
-                {
-                    if ($prod->id == $product->id) {
-                        return $prod;
-                    }
-                }
+            if ($prod->id == $product->id) {
+                return $prod;
             }
         }
 
@@ -130,6 +209,7 @@ class Storage implements StorageInterface
 
     // We create the storage for the warehouse
     // The Storage class has to know about every existing warehouse
+    // PARENT KONSTRUKTOR
     public function create(WarehouseInterface $warehouse): void
     {
         $warehouses = $this->warehouses;
