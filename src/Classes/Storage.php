@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Classes;
 
+use Exceptions\ProductNotFoundException;
 use Exceptions\StorageIsFullException;
 use Exceptions\StorageAlreadyExistsException;
 use Interfaces\ProductInterface;
@@ -102,92 +103,100 @@ class Storage implements StorageInterface
         ProductInterface $product,
         WarehouseInterface $warehouse,
         int $quantity
-    )
+    ): int|null
     {
-        // Product és a quantity kell
+        // If the warehouse is empty we iterate until we get one where the product is stored
+        if ($warehouse->isEmpty() ) {
+            return $this->searchForItemInWarehouses($product, $warehouse, $quantity);
+        }
 
-        // Üres raktár rekurzív újrahívás
-            // Ha minden raktár üres Exception
-        // $currentCapacity = $warehouse->currentCapacity;
-        // $capacity = $warehouse->capacity
+        // We check if the product is in the warehouse
+        $productInStorage = $this->getProductByWarehouse($product, $warehouse);
 
-        // Ha üres a raktár megyünk a következő raktárra, ami nem üres
-        // if ($warehouse->isEmpty() ) {
-        //     return $this->searchForItemInWarehouses($product);
-        // }
+        // If not we iterate forward
+        if (is_null($productInStorage)) {
+            return $this->searchForItemInWarehouses($product, $warehouse, $quantity);
+        }
 
-        // Megnézzük, hogy a nem üres raktárban szerepel-e a termék
-        //$productInStorage = $this->getProductByWarehouse($product, $warehouse);
-
-        // Ha nem, újrahívjuk a függvényt egy másik raktárral
-        // if (is_null($product)) {
-        //  return $this->searchForItemInWarehouses($product);
-        // }
-        // Szerepel annyi termék a raktárban? boolean|raktár
-
-        // Ha szerepel, kivesszük a raktárból
-        // if ($productInStorage->quantity >= $quantity) {
-        //     $this->removeProduct($product, $quantity);
-        // }
-
-            // Ha nem rekuzív újrahívás
-                // Ha egyik raktárban sem szerepel a termék, Exception
-            // Ha igen, kiveszem a tételt
-
-        // Van maradék?
-            // Ha nincs, visszatérés bool
-            // Ha van, rekurzív újrahívás
+        // Otherwise we remove the product from the warehouse
+        return $this->removeProduct($productInStorage, $warehouse, $quantity);
     }
 
-    // private function searchForItemInWarehouses(ProductInterface $product)
-    // {
-    //     foreach ($this->warehouses as $value) {
-    //         if ($this->getProductByWarehouse($product, $value['warehouse'])) {
-    //             return $this->remove($product, $value['warehouse']);
-    //         }
-    //     }
-    //     // If the loop is finished it means the product is not in storage
-    //     throw new ProductNotFoundException('The product ' . $product->name . ' is not found in the storage.');
-    // }
-
-
-    private function removeProduct()
+    // Iterates over the warehouses until it finds a warehouse where the product is stored
+    // Or throws an exception
+    private function searchForItemInWarehouses(
+        ProductInterface $product,
+        WarehouseInterface $warehouse,
+        int $quantity
+    ): int
     {
-        // $added = (int) ($currentCapacity >= $quantity) ? $quantity : $currentCapacity;
-        // $productInStorage = $this->getProductByWarehouse($product, $warehouse);
-
-        // // If the product is not stored in the warehouse
-        // // We add it to it, otherwise we update its quantity
-        // if (is_null($productInStorage))
-        // {
-        //     // We create a new attribute to the Product object
-        //     // So we can check its quantity easier
-        //     $product = clone $product;
-        //     $product->quantity = $added;
-
-        //     $this->warehouses[$warehouse->id]['products'][] = $product;
-        // }
-        // else
-        // {
-        //     $productInStorage->quantity = $productInStorage->quantity + $added;
-        // }
-
-        // $newCurrentCapacity = $currentCapacity - $added;
-        // $warehouse->setCurrentCapacity($newCurrentCapacity);
-
-        // return $added;
+        foreach ($this->warehouses as $value) {
+            if ($this->getProductByWarehouse($product, $value['warehouse'])) {
+                return $this->remove($product, $value['warehouse'], $quantity);
+            }
+        }
+        // If the loop is finished it means the product is not in storage
+        throw new ProductNotFoundException('The product ' . $product->name . ' is not found in the storage.');
     }
 
-    
-    
-    
-    
-    //public function addProductToWarehouse()
 
-    // public function getAll(): array
-    // {
-    //     // return self::$warehouses;
-    // }
+    private function removeProduct(
+        ProductInterface $product,
+        WarehouseInterface $warehouse,
+        int $quantity,
+    ): int|null
+    {
+        $storedProductQty = $product->quantity;
+        $removed = (int) ($storedProductQty <= $quantity) ? $quantity : $storedProductQty;
+
+        $newCurrentCapacity = ($storedProductQty >= $quantity) ? 
+                    $warehouse->currentCapacity - $quantity : $warehouse->currentCapacity - $storedProductQty;
+
+        $warehouse->setCurrentCapacity($newCurrentCapacity);
+
+        // If the warehouse has enough products to remove
+        // We remove it
+        if ($removed >= $quantity) {
+            return $this->removeProductFromWarehouse($product, $warehouse);
+        }
+
+        // Or we change its quantity
+        if ($removed < $quantity) {
+            return $this->removeProductFromWarehouse($product, $warehouse, $quantity);
+        }
+
+
+        // If there are any remainder we iterate over the other warehouses
+        $remainder = $removed - $quantity;
+
+        return $this->searchForItemInWarehouses($product, $warehouse, $quantity);
+    }
+
+    public function removeProductFromWarehouse(
+        ProductInterface $product,
+        WarehouseInterface $warehouse,
+        ?int $quantity = null
+    ): int|null
+    {
+        $products = $this->warehouses[$warehouse->id]['products'];
+
+        foreach ($this->warehouses[$warehouse->id]['products'] as $key => $item)
+        {
+            if ($product->id == $item->id)
+            {
+                // We quantity is give, we remove the amount
+                if (! is_null($quantity)) {
+                    $product->quantity = $quantity;
+                }
+                // Else we remove the product completley
+                else {
+                    unset($products[$key]);
+                }
+
+                return $quantity ?? null;
+            }
+        }
+    }
 
     // Return the product from the warehouse's stock
     public function getProductByWarehouse(
