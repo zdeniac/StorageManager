@@ -1,5 +1,6 @@
 # Webdream Storage Manager
-##User manual
+
+User manual:
 
   1. Instantiate Products, Brands and Warehouses, each with their own attributes.
   2. Instantiate the Storage.
