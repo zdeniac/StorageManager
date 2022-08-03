@@ -42,4 +42,8 @@ class Warehouse implements WarehouseInterface
         return $this->attributes[$name] ?? null;
     }
 
+    public function __set(string $name, $value)
+    {
+        return $this->attributes[$name] = $value;
+    }
 }
