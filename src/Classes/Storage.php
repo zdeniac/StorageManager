@@ -178,8 +178,8 @@ class Storage implements StorageInterface
         $toRemove = (int) ($storedProductQty >= $quantity) ? $quantity : $storedProductQty;
 
         // We recalibrate the current capacity according to the quantity to be removed
-        $newCurrentCapacity = ($storedProductQty >= $quantity) ? 
-            $warehouse->currentCapacity - $quantity : $storedProductQty - $warehouse->currentCapacity;
+        $newCurrentCapacity = ($storedProductQty >= $quantity) ?
+            $warehouse->capacity - ($storedProductQty - $quantity) : $storedProductQty - $warehouse->currentCapacity;
 
         $warehouse->setCurrentCapacity($newCurrentCapacity);
 

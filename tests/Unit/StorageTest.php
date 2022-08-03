@@ -431,8 +431,7 @@ class StorageTest extends TestCase
         $storage->add($product2, $warehouse2, 10);
 
         $storage->remove($product2, $warehouse);
-
-        $this->assertTrue($warehouse->isFull());
+        
         $this->assertEmpty($storage->getStorageByWarehouse($warehouse2));
     }
 

@@ -15,16 +15,16 @@ try {
 
     $product = new Product(
         itemNumber: '2121', 
-        name:'Vans cipő', 
-        price: 200.30,
+        name:'Cipő 1', 
+        price: 45000,
         id: 1,
         brand: $nike
     );
     
     $product2 = new Product(
         itemNumber: '3303', 
-        name:'Autó', 
-        price: 1000,
+        name:'Cipő 2', 
+        price: 15000,
         id: 3,
         brand: $nike,
         attributes: ['productionDate' => date('Y-m-d H:i:s')]
@@ -32,7 +32,7 @@ try {
     
     $product3 = new Product(
         itemNumber: '54353', 
-        name:'Ház', 
+        name:'Cipő 3', 
         price: 9999,
         id: 15,
         brand: $vans
