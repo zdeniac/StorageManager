@@ -5,9 +5,6 @@ namespace Interfaces;
 
 interface WarehouseInterface
 {
-    public function add(ProductInterface $product, int $quantity): bool;
-    public function remove(ProductInterface $product, int $quantity): bool;
-    public function getStorage(): array;
     public function setCurrentCapacity(int $amount): void;
     public function isEmpty(): bool;
     public function isFull(): bool;

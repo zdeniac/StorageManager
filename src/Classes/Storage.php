@@ -6,6 +6,7 @@ namespace Classes;
 use Exceptions\ProductNotFoundException;
 use Exceptions\StorageIsFullException;
 use Exceptions\StorageAlreadyExistsException;
+use Exceptions\WarehouseNotAssignedException;
 use Interfaces\ProductInterface;
 use Interfaces\StorageInterface;
 use Interfaces\WarehouseInterface;
@@ -25,6 +26,10 @@ class Storage implements StorageInterface
         int $quantity
     ): bool
     {
+        if (! array_key_exists($warehouse->id, $this->warehouses)) {
+            throw new WarehouseNotAssignedException('The warehouse #' . $warehouse->id . ' is not assigned to the storage.');
+        }
+
         /**
          * @var int $currentCapacity
         */
@@ -113,6 +118,10 @@ class Storage implements StorageInterface
         int $quantity
     ): bool
     {
+        if (! array_key_exists($warehouse->id, $this->warehouses)) {
+            throw new WarehouseNotAssignedException('The warehouse #' . $warehouse->id . ' is not assigned to the storage.');
+        }
+
         // We check if the product is in the warehouse
         $productInStorage = $this->getProductByWarehouse($product, $warehouse);
 
@@ -219,6 +228,10 @@ class Storage implements StorageInterface
         WarehouseInterface $warehouse
     ): ProductInterface|null
     {
+        if (! array_key_exists($warehouse->id, $this->warehouses)) {
+            throw new WarehouseNotAssignedException('The warehouse #' . $warehouse->id . ' is not assigned to the storage.');
+        }
+
         $warehouses = $this->warehouses;
 
         foreach ($warehouses[$warehouse->id]['products'] as $key => $prod) {
@@ -234,19 +247,23 @@ class Storage implements StorageInterface
      * Assign the warehouse to the stock.
      * @throws StorageAlreadyExistsException
      */
-    public function assign(WarehouseInterface $warehouse): void
+    public function assign(WarehouseInterface ...$warehouses): void
     {
-        $warehouses = $this->warehouses;
-        if (array_key_exists($warehouse->id, $warehouses)) {
-            throw new StorageAlreadyExistsException('Storage for warehouse #' . $warehouse->id . ' already exists.');
+        $assignedWarehouses = $this->warehouses;
+
+        foreach ($warehouses as $warehouse)
+        {
+            if (array_key_exists($warehouse->id, $assignedWarehouses)) {
+                throw new StorageAlreadyExistsException('Storage for warehouse #' . $warehouse->id . ' already exists.');
+            }
+            
+            $assignedWarehouses[$warehouse->id] = [
+                'warehouse' => $warehouse,
+                'products' => []
+            ];    
         }
 
-        $warehouses[$warehouse->id] = [
-            'warehouse' => $warehouse,
-            'products' => []
-        ];
-
-        $this->warehouses = $warehouses;
+        $this->warehouses = $assignedWarehouses;
     }
     /**
      * Get the whole storage of a warehouse.

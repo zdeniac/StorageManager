@@ -16,32 +16,10 @@ class Warehouse implements WarehouseInterface
         public readonly string $address,
         public readonly int $capacity,
         public readonly int $id,
-        private StorageInterface $storage,
         private ?array $attributes = null,
     )
     {
         $this->currentCapacity = $capacity;
-
-        // Anytime a warehouse is created, we assign it to the stock
-        $this->storage->assign($this);
-    }
-
-    public function add(
-        ProductInterface $product,
-        int $quantity
-    ): bool
-    {
-        return $this->storage->add($product, $this, $quantity);
-    }
-
-    public function remove(ProductInterface $product, int $quantity): bool
-    {
-        return $this->storage->remove($product, $this, $quantity);
-    }
-
-    public function getStorage(): array
-    {
-        return $this->storage->getStorageByWarehouse($this);
     }
 
     public function setCurrentCapacity(int $amount): void

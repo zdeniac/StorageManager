@@ -43,7 +43,6 @@ try {
         address: '7761 Kozármisleny Székely B. 35', 
         capacity: 10,
         id: 200,
-        storage: $storage
     );
     
     $warehouse2 = new Warehouse(
@@ -51,7 +50,6 @@ try {
         address: 'Budapest', 
         capacity: 20,
         id: 300,
-        storage: $storage,
         attributes: ['country' => 'Hungary']
     );
 
@@ -60,12 +58,13 @@ try {
         address: 'Budapest', 
         capacity: 40,
         id: 111,
-        storage: $storage
     );
+
+    $storage->assign($warehouse, $warehouse2, $warehouse3);
     
     
-    $warehouse->add(product: $product, quantity: 70);
-    $warehouse->remove(product: $product, quantity: 70);
+    $storage->add(warehouse: $warehouse, product: $product, quantity: 70);
+    // $warehouse->remove(product: $product, quantity: 70);
 
     dump($storage);
 

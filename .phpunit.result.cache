@@ -1,1 +1,1 @@
-{"version":1,"defects":{"Warning":6},"times":{"Warning":0.483}}
+{"version":1,"defects":{"Warning":6,"BrandTest::test_if_out_of_range_exception_is_thrown":5,"StorageTest::test_storage_is_correct":4,"BrandTest::test_out_of_range_exception_is_thrown":4},"times":{"Warning":0.001,"BrandTest::test_if_out_of_range_exception_is_thrown":0.429,"BrandTest::test_if_attributes_are_set":0.076,"StorageTest::test_storage_is_correct":0.002,"BrandTest::test_out_of_range_exception_is_thrown":0.007,"BrandTest::test_attributes_are_set":0.001,"ProductTest::test_attributes_are_set":0.513}}
