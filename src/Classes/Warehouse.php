@@ -6,13 +6,11 @@ namespace Classes;
 use Interfaces\WarehouseInterface;
 use Interfaces\ProductInterface;
 use Interfaces\StorageInterface;
-use phpDocumentor\Reflection\Types\Boolean;
 
 class Warehouse implements WarehouseInterface
 {
     public int $currentCapacity;
 
-    // A konstruktorban meghívjuk a szülő konstruktorát
     public function __construct(
         public readonly string $name,
         public readonly string $address,
@@ -23,7 +21,9 @@ class Warehouse implements WarehouseInterface
     )
     {
         $this->currentCapacity = $capacity;
-        $this->storage->create($this);
+
+        // Anytime a warehouse is created, we assign it to the stock
+        $this->storage->assign($this);
     }
 
     public function add(
@@ -39,7 +39,6 @@ class Warehouse implements WarehouseInterface
         return $this->storage->remove($product, $this, $quantity);
     }
 
-    // returns the whole storage of the warehouse
     public function getStorage(): array
     {
         return $this->storage->getStorageByWarehouse($this);

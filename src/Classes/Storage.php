@@ -14,13 +14,11 @@ class Storage implements StorageInterface
 {
     private array $warehouses = [];
 
-    // protected static array $warehouses = [];
-	
-	// public function __construct($child) {
-	// 	array_push(self::$warehouses, $child);
-	// }
-    
-    // WAREHOUSE
+    /**
+     * Add a product to the warehouse.
+     * If the warehouse is full, or the number of products cannot be added,
+     * the function is recalled recursively with another warehouse.
+     */
     public function add(
         ProductInterface $product,
         WarehouseInterface $warehouse,
@@ -51,8 +49,7 @@ class Storage implements StorageInterface
 
         return true;
     }
-    // Warehouse-ba!
-    // returns the number of items added
+
     private function addProduct(
         ProductInterface $product,
         WarehouseInterface $warehouse,
@@ -79,17 +76,24 @@ class Storage implements StorageInterface
             $productInStorage->quantity = $productInStorage->quantity + $added;
         }
 
+        // We update the warehouse's current capacity
         $newCurrentCapacity = $currentCapacity - $added;
         $warehouse->setCurrentCapacity($newCurrentCapacity);
 
         return $added;
     }
 
-    // Warehouse-ba!
+    /**
+     * Iterate over the warehouses until we find a warehouse with at least one space,
+     * and recall add() with the remaining quantity,
+     * or throw exception.
+     * @throws StorageIsFullException
+     */ 
     private function searchForWarehouseWithSpace(ProductInterface $product, int $quantity)
     {
+        // We iterate over the warehouses until we find one with free space
         foreach ($this->warehouses as $value) {
-            if ($value['warehouse']->currentCapacity > 0) {
+            if (! $value['warehouse']->isFull()) {
                 return $this->add($product, $value['warehouse'], $quantity);
             }
         }
@@ -97,8 +101,11 @@ class Storage implements StorageInterface
         throw new StorageIsFullException('The storage is full! ' . $quantity . ' items could not been placed.');
     }
 
-
-    // Warehouse-ba!
+    /**
+     * Remove a product from the warehouse.
+     * If the warehouse is empty, or the product is not stored in the given warehouse,
+     * the function is recalled recursively with another warehouse.
+     */
     public function remove(
         ProductInterface $product,
         WarehouseInterface $warehouse,
@@ -116,7 +123,8 @@ class Storage implements StorageInterface
         // Otherwise we remove the product from the warehouse
         $removed = $this->removeProduct($productInStorage, $warehouse, $quantity);
 
-        // If there are any remainder we iterate over the other warehouses
+        // If we could not remove the given quantity from the given warehouse
+        // we iterate over the other warehouses
         if ($quantity > $removed)
         {
             $remainder = $quantity - $removed;
@@ -127,8 +135,12 @@ class Storage implements StorageInterface
         return true;
     }
 
-    // Iterates over the warehouses until it finds a warehouse where the product is stored
-    // Or throws an exception
+    /**
+     * Iterate over the warehouses until we find a warehouse where the product is stored,
+     * and recall remove() with the remaining quantity,
+     * or throw exception.
+     * @throws ProductNotFoundException
+     */ 
     private function searchForItemInWarehouses(
         ProductInterface $product,
         WarehouseInterface $warehouse,
@@ -136,6 +148,7 @@ class Storage implements StorageInterface
     ): bool
     {
         foreach ($this->warehouses as $value) {
+            // If the product is found in the warehouse
             if ($this->getProductByWarehouse($product, $value['warehouse'])) {
                 return $this->remove($product, $value['warehouse'], $quantity);
             }
@@ -143,7 +156,6 @@ class Storage implements StorageInterface
         // If the loop is finished it means the product is not in storage
         throw new ProductNotFoundException('The product ' . $product->name . ' is not found in the storage.');
     }
-
 
     private function removeProduct(
         ProductInterface $product,
@@ -154,26 +166,27 @@ class Storage implements StorageInterface
         $storedProductQty = $product->quantity;
         $toRemove = (int) ($storedProductQty >= $quantity) ? $quantity : $storedProductQty;
 
+        // We recalibrate the current capacity according to the quantity to be removed
         $newCurrentCapacity = ($storedProductQty >= $quantity) ? 
             $warehouse->currentCapacity - $quantity : $storedProductQty - $warehouse->currentCapacity;
 
         $warehouse->setCurrentCapacity($newCurrentCapacity);
 
         // If the warehouse has enough products to remove
-        // We remove it
+        // We remove all of them
         if ($toRemove >= $storedProductQty) {
-            $this->removeProductFromWarehouse($product, $warehouse);
+            $this->removeItemFromWarehouse($product, $warehouse);
         }
 
-        // Or we change its quantity
+        // Otherwise we change the quantity
         if ($toRemove < $storedProductQty) {
-            $this->removeProductFromWarehouse($product, $warehouse, $storedProductQty - $toRemove);
+            $this->removeItemFromWarehouse($product, $warehouse, $storedProductQty - $toRemove);
         }
 
         return $toRemove;
     }
 
-    public function removeProductFromWarehouse(
+    private function removeItemFromWarehouse(
         ProductInterface $product,
         WarehouseInterface $warehouse,
         ?int $quantity = null
@@ -183,11 +196,11 @@ class Storage implements StorageInterface
         {
             if ($product->id == $item->id)
             {
-                // If the quantity is given, we remove the amount
+                // If the quantity is given, that means we don't remove all of it
                 if (! is_null($quantity)) {
                     $item->quantity = $quantity;
                 }
-                // Else we remove the product completley
+                // Else we remove the product completeley
                 else {
                     unset($this->warehouses[$warehouse->id]['products'][$key]);
                 }
@@ -197,7 +210,9 @@ class Storage implements StorageInterface
         }
     }
 
-    // Return the product from the warehouse's stock
+    /**
+     * Return the product from the warehouse's stock.
+     */ 
     public function getProductByWarehouse(
         ProductInterface $product,
         WarehouseInterface $warehouse
@@ -205,8 +220,7 @@ class Storage implements StorageInterface
     {
         $warehouses = $this->warehouses;
 
-        foreach ($warehouses[$warehouse->id]['products'] as $key => $prod)
-        {
+        foreach ($warehouses[$warehouse->id]['products'] as $key => $prod) {
             if ($prod->id == $product->id) {
                 return $prod;
             }
@@ -215,16 +229,17 @@ class Storage implements StorageInterface
         return null;
     }
 
-    // We create the storage for the warehouse
-    // The Storage class has to know about every existing warehouse
-    // PARENT KONSTRUKTOR
-    public function create(WarehouseInterface $warehouse): void
+    /**
+     * Assign the warehouse to the stock.
+     * @throws StorageAlreadyExistsException
+     */
+    public function assign(WarehouseInterface $warehouse): void
     {
         $warehouses = $this->warehouses;
         if (array_key_exists($warehouse->id, $warehouses)) {
             throw new StorageAlreadyExistsException('Storage for warehouse #' . $warehouse->id . ' already exists.');
         }
-        // megnézzük, van-e kulcs duplikáció, ha van, exception
+
         $warehouses[$warehouse->id] = [
             'warehouse' => $warehouse,
             'products' => []
@@ -232,7 +247,9 @@ class Storage implements StorageInterface
 
         $this->warehouses = $warehouses;
     }
-
+    /**
+     * Get the whole storage of a warehouse.
+     */
     public function getStorageByWarehouse(WarehouseInterface $warehouse): array
     {
         return $this->warehouses[$warehouse->id]['products'];
