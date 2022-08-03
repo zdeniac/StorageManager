@@ -66,6 +66,7 @@ class Storage implements StorageInterface
         {
             // We create a new attribute to the Product object
             // So we can check its quantity easier
+            // This would be better as a separate class, like "WarehouseItem"
             $product = clone $product;
             $product->quantity = $added;
 
