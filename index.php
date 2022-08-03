@@ -64,8 +64,8 @@ try {
     );
     
     
-    $warehouse->add(product: $product, quantity: 60);
-    $warehouse->remove(product: $product, quantity: 30);
+    $warehouse->add(product: $product, quantity: 70);
+    $warehouse->remove(product: $product, quantity: 70);
 
     dump($storage);
 

@@ -152,7 +152,7 @@ class Storage implements StorageInterface
     ): int|null
     {
         $storedProductQty = $product->quantity;
-        $removed = (int) ($storedProductQty >= $quantity) ? $quantity : $storedProductQty;
+        $toRemove = (int) ($storedProductQty >= $quantity) ? $quantity : $storedProductQty;
 
         $newCurrentCapacity = ($storedProductQty >= $quantity) ? 
             $warehouse->currentCapacity - $quantity : $storedProductQty - $warehouse->currentCapacity;
@@ -161,16 +161,16 @@ class Storage implements StorageInterface
 
         // If the warehouse has enough products to remove
         // We remove it
-        if ($removed >= $storedProductQty) {
+        if ($toRemove >= $storedProductQty) {
             $this->removeProductFromWarehouse($product, $warehouse);
         }
 
         // Or we change its quantity
-        if ($removed < $storedProductQty) {
-            $this->removeProductFromWarehouse($product, $warehouse, $storedProductQty - $removed);
+        if ($toRemove < $storedProductQty) {
+            $this->removeProductFromWarehouse($product, $warehouse, $storedProductQty - $toRemove);
         }
 
-        return $removed;
+        return $toRemove;
     }
 
     public function removeProductFromWarehouse(
@@ -183,7 +183,7 @@ class Storage implements StorageInterface
         {
             if ($product->id == $item->id)
             {
-                // We quantity is give, we remove the amount
+                // If the quantity is given, we remove the amount
                 if (! is_null($quantity)) {
                     $item->quantity = $quantity;
                 }
