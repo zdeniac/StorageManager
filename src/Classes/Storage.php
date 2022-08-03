@@ -17,8 +17,9 @@ class Storage implements StorageInterface
 
     /**
      * Add a product to the warehouse.
-     * If the warehouse is full, or the number of products cannot be added,
-     * the function is recalled recursively with another warehouse.
+     * If the warehouse is full, or the number of products added is higher than the capacity of the warehouse,
+     * the function is recalled recursively for another warehouse.
+     * @throws WarehouseNotAssignedException
      */
     public function add(
         ProductInterface $product,
@@ -115,7 +116,7 @@ class Storage implements StorageInterface
     public function remove(
         ProductInterface $product,
         WarehouseInterface $warehouse,
-        int $quantity
+        ?int $quantity = null
     ): bool
     {
         if (! array_key_exists($warehouse->id, $this->warehouses)) {
@@ -154,7 +155,7 @@ class Storage implements StorageInterface
     private function searchForItemInWarehouses(
         ProductInterface $product,
         WarehouseInterface $warehouse,
-        int $quantity
+        ?int $quantity = null
     ): bool
     {
         foreach ($this->warehouses as $value) {
@@ -170,7 +171,7 @@ class Storage implements StorageInterface
     private function removeProduct(
         ProductInterface $product,
         WarehouseInterface $warehouse,
-        int $quantity,
+        ?int $quantity = null,
     ): int|null
     {
         $storedProductQty = $product->quantity;
@@ -184,7 +185,7 @@ class Storage implements StorageInterface
 
         // If the warehouse has enough products to remove
         // We remove all of them
-        if ($toRemove >= $storedProductQty) {
+        if ($toRemove >= $storedProductQty || is_null($quantity)) {
             $this->removeItemFromWarehouse($product, $warehouse);
         }
 
@@ -200,13 +201,13 @@ class Storage implements StorageInterface
         ProductInterface $product,
         WarehouseInterface $warehouse,
         ?int $quantity = null
-    ): int|null
+    ): int
     {
         foreach ($this->warehouses[$warehouse->id]['products'] as $key => $item)
         {
             if ($product->id == $item->id)
             {
-                // If the quantity is given, that means we don't remove all of it
+                // If the quantity is given, that means we don't remove everything
                 if (! is_null($quantity)) {
                     $item->quantity = $quantity;
                 }
@@ -215,13 +216,15 @@ class Storage implements StorageInterface
                     unset($this->warehouses[$warehouse->id]['products'][$key]);
                 }
 
-                return $quantity ?? null;
+                break;
             }
         }
+
+        return $quantity ?? $product->quantity;
     }
 
     /**
-     * Return the product from the warehouse's stock.
+     * Return the product from the warehouse's storage.
      */ 
     public function getProductByWarehouse(
         ProductInterface $product,
@@ -244,7 +247,7 @@ class Storage implements StorageInterface
     }
 
     /**
-     * Assign the warehouse to the stock.
+     * Assign the warehouse to the storage.
      * @throws StorageAlreadyExistsException
      */
     public function assign(WarehouseInterface ...$warehouses): void
@@ -266,11 +269,23 @@ class Storage implements StorageInterface
         $this->warehouses = $assignedWarehouses;
     }
     /**
-     * Get the whole storage of a warehouse.
+     * Returns the whole storage of a warehouse.
+     * @throws WarehouseNotAssignedException
      */
     public function getStorageByWarehouse(WarehouseInterface $warehouse): array
     {
+        if (! array_key_exists($warehouse->id, $this->warehouses)) {
+            throw new WarehouseNotAssignedException('The warehouse #' . $warehouse->id . ' is not assigned to the storage.');
+        }
+        
         return $this->warehouses[$warehouse->id]['products'];
+    }
+    /**
+     * Return every warehouse storage.
+     */
+    public function getContent(): array
+    {
+        return $this->warehouses;
     }
 
 }

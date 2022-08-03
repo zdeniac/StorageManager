@@ -62,9 +62,7 @@ try {
 
     $storage->assign($warehouse, $warehouse2, $warehouse3);
     
-    
     $storage->add(warehouse: $warehouse, product: $product, quantity: 70);
-    // $warehouse->remove(product: $product, quantity: 70);
 
     dump($storage);
 

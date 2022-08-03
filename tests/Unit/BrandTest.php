@@ -10,7 +10,7 @@ class BrandTest extends TestCase
     {
         $this->expectException(Exceptions\BrandQualityOutOfRangeException::class);
 
-        $brand = new Brand('Márka', 10);
+        $brand = new Brand('Márka', rand(5, 100));
     }
 
     public function test_attributes_are_set()
