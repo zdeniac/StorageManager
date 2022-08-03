@@ -1,4 +1,4 @@
-# webdream-task
+# Webdream Storage Manager
 User manual:
 
   1. Instantiate Products, Brands and Warehouses, each with their own attributes.
