@@ -1,4 +1,4 @@
-# Webdream Storage Manager
+# Storage Manager
 
 User manual:
 
