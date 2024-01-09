@@ -15,7 +15,7 @@ try {
 
     $product = new Product(
         itemNumber: '2121', 
-        name:'Cipő 1', 
+        name:'Shoe 1', 
         price: 45000,
         id: 1,
         brand: $nike
@@ -23,7 +23,7 @@ try {
     
     $product2 = new Product(
         itemNumber: '3303', 
-        name:'Cipő 2', 
+        name:'Shoe 2', 
         price: 15000,
         id: 3,
         brand: $nike,
@@ -39,14 +39,14 @@ try {
     );
     
     $warehouse = new Warehouse(
-        name: 'Raktár 1', 
-        address: '7761 Kozármisleny Székely B. 35', 
+        name: 'Warehouse 1', 
+        address: 'City', 
         capacity: 10,
         id: 200,
     );
     
     $warehouse2 = new Warehouse(
-        name: 'Raktár 2', 
+        name: 'Warehouse 2', 
         address: 'Budapest', 
         capacity: 20,
         id: 300,
@@ -54,7 +54,7 @@ try {
     );
 
     $warehouse3 = new Warehouse(
-        name: 'Raktár 3', 
+        name: 'Warehouse 3', 
         address: 'Budapest', 
         capacity: 40,
         id: 111,
